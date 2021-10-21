@@ -2,6 +2,7 @@ const { json } = require('express');
 const express = require('express');
 const app = express();
 const morgan = require('morgan');
+const cors = require('cors');
 
 // pari tuntia debugattiin ja lopulta olikin express.json'()' 
 // mikä puuttui...........
@@ -17,6 +18,9 @@ app.use(morgan('tiny', {
 app.use(morgan(':method :url :status :res[content-length] - response-time ms :body', {
     skip: (req, res) => { return req.method !== 'POST'}
 }));
+
+app.use(express.static('build'));
+app.use(cors());
 
 morgan.token('body', (req, res) => { return JSON.stringify(req.body) })
 
@@ -121,7 +125,7 @@ app.post('/api/persons', (req, res) => {
     res.status(200).json(person)
 })
     
-PORT = 3000;
+PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
