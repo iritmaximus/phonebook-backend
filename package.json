@@ -8,7 +8,7 @@
     "dev": "nodemon index.js",
     "start": "node index.js",
     "build:ui": "rm -rf build && cd ../phonebook-frontend && npm run build --prod && cp -r build ../phonebook-backend",
-    "deploy": "git add . && git commit -m deploy && git push heroku main",
+    "deploy": "git add . && git commit -m 'deploy' && git push heroku main",
     "deploy:full": "npm run build:ui && git add . && git commit -m 'uibuild' && git push heroku main",
     "logs:prod": "heroku logs --tail"
   },
@@ -18,6 +18,7 @@
     "nodemon": "^2.0.13"
   },
   "dependencies": {
+    "@heroku-cli/plugin-buildpacks": "^7.54.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "heroku": "^7.59.0",
