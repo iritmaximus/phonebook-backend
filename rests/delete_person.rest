@@ -1,1 +1,1 @@
-DELETE http://localhost:3001/api/persons/3
+DELETE https://mighty-coast-35950.herokuapp.com/api/persons/3

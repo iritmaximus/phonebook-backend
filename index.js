@@ -1,4 +1,7 @@
+// en itse kirjoittanut mutta jostain ilmestyi
+// ja tässä kohtaa pelottaa liikaa poistaa se
 const { json } = require('express');
+
 const express = require('express');
 const app = express();
 const morgan = require('morgan');
@@ -19,18 +22,21 @@ app.use(morgan(':method :url :status :res[content-length] - response-time ms :bo
     skip: (req, res) => { return req.method !== 'POST'}
 }));
 
+// ottaa käyttöön frontendin backendin kautta
 app.use(express.static('build'));
 app.use(cors());
 
+// uusi morgan token joka palauttaa json muodosssa pyynnön (POST) bodyn
 morgan.token('body', (req, res) => { return JSON.stringify(req.body) })
 
-
+// uusien yhteystietojen id:n laskemista varten
 const generateId = () => {
     const max = 1000000000
     newId = Math.floor(Math.random() * max)
     return newId
 }
 
+// kovakoodatut ihmiset testausta varten
 let persons = [
     {
         id: 1,
@@ -70,6 +76,8 @@ app.get('/info', (req, res) => {
 app.get('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id);
 
+    // etsitään ihminen pyynnön id:n avulla ja palautetaan jsonissa jos löytyy
+    // jos ei niin virhekoodia pukkaa
     const person = persons.find(person => person.id === id);
     if (person) {
         res.json(person);
@@ -82,10 +90,15 @@ app.get('/api/persons/:id', (req, res) => {
 app.delete('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id)
 
+    // etsitään ihminen joka halutaan poistaa
     const person = persons.find(person => person.id === id)
     
+    // jos ihminen löytyy filteröidään id:n avulla se ihminen pois
     if (person) {
         persons.filter(person => person.id !== id)
+
+        // jos ylempi ei toimi niin:
+        // persons = persons.filter(person => person.id !== id)
 
         res.status(204).end()
         console.log('Person deleted')
@@ -94,7 +107,7 @@ app.delete('/api/persons/:id', (req, res) => {
     }
 })
 
-// lisää ihminen (toivottavasti)
+// lisää ihminen
 app.post('/api/persons', (req, res) => {
     const body = req.body
     console.log('Body:', body)
@@ -105,20 +118,24 @@ app.post('/api/persons', (req, res) => {
         return res.status(404).json({'error': 'name or number missing'})
     } 
 
+    // funktio joka tarkistaa löytyykö nimi jo yhteystiedoista 
     const nameExists = (name) => {
         return persons.find(person => person.name === name)
     }
 
+    // jos nimi löytyy niin virhekoodia
     if (nameExists(body.name)) {
         return res.status(404).json({'error': 'name must be unique'})
     }
 
+    // jos meni läpi yllä olevista "testeistä" niin luodaan uusi yhteystieto
     const person = {
         id: generateId(),
         name: body.name,
         number: body.number
     }
 
+    // lisätään yt. 
     persons = persons.concat(person)
     console.log('New persons:', persons)
 
