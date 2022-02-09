@@ -1,11 +1,13 @@
+require("dotenv").config();
 // en itse kirjoittanut mutta jostain ilmestyi
 // ja tässä kohtaa pelottaa liikaa poistaa se
-const { json } = require('express');
+const { json, response } = require('express');
 
 const express = require('express');
 const app = express();
 const morgan = require('morgan');
 const cors = require('cors');
+const Person = require("./models/person.js");
 
 // pari tuntia debugattiin ja lopulta olikin express.json'()' 
 // mikä puuttui...........
@@ -22,127 +24,120 @@ app.use(morgan(':method :url :status :res[content-length] - response-time ms :bo
     skip: (req, res) => { return req.method !== 'POST'}
 }));
 
+// uusi morgan token joka palauttaa json muodosssa pyynnön (POST) bodyn
+morgan.token('body', (req, res) => { return JSON.stringify(req.body) })
+
 // ottaa käyttöön frontendin backendin kautta
 app.use(express.static('build'));
 app.use(cors());
 
-// uusi morgan token joka palauttaa json muodosssa pyynnön (POST) bodyn
-morgan.token('body', (req, res) => { return JSON.stringify(req.body) })
 
-// uusien yhteystietojen id:n laskemista varten
-const generateId = () => {
-    const max = 1000000000
-    newId = Math.floor(Math.random() * max)
-    return newId
-}
 
-// kovakoodatut ihmiset testausta varten
-let persons = [
-    {
-        id: 1,
-        name: "Arto Hellas",
-        number: "040-123456"
-    },
-    {
-        id: 2,
-        name: "Ada Lovelace",
-        number: "39-44-53235323"
-    },
-    {
-        id: 3,
-        name: "Dan Abramov",
-        number: "12-43-234345"
-    },
-    {
-        id: 4,
-        name: "Mary Poppendick",
-        number: "39-23-6423122"
-    },
-]
+
 
 // kaikki ihmiset
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    Person.find({}).then(persons => {
+        res.json(persons);
+    })
 })
 
 // info sivu
 app.get('/info', (req, res) => {
-    res.send(
-        `<p>Phonebook has info of ${persons.length}</p>${Date()}`
-    )
+    // vähän ruma ratkaisu mutta se toimii, mur muuttuvat arvot backendissä
+    var i = 0;
+    Person.find({}).then(persons => {
+        persons.forEach(person => {
+            i++;
+        })
+        
+        res.send(
+            `<p>Phonebook has info of ${i}</p>${Date()}`
+        )   
+    })
+    
 })
 
 // yksittäinen ihminen
-app.get('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id);
-
-    // etsitään ihminen pyynnön id:n avulla ja palautetaan jsonissa jos löytyy
-    // jos ei niin virhekoodia pukkaa
-    const person = persons.find(person => person.id === id);
-    if (person) {
-        res.json(person);
-    } else {
-        return res.status(404).end();
-    }
+app.get('/api/persons/:id', (req, res, next) => {
+    Person.find({ id: req.params.id })
+        .then(person => {
+            if (person) {
+                res.json(person);
+            } else {
+                res.status(404).send({ "error": "no person found" });
+            }
+        })
+        .catch(error => next(error));
 })
 
 // poista ihminen
-app.delete('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-
+app.delete('/api/persons/:id', (req, res, next) => {
     // etsitään ihminen joka halutaan poistaa
-    const person = persons.find(person => person.id === id)
-    
-    // jos ihminen löytyy filteröidään id:n avulla se ihminen pois
-    if (person) {
-        persons.filter(person => person.id !== id)
+    Person.findByIdAndDelete(req.params.id)
+        .then(person => {
+            if (person) {
+                console.log("deleted:", person);
+            res.json(person);
+            } else {
+                res.status(404).end();
+            }
+        })
+        .catch(error => next(error));
 
-        // jos ylempi ei toimi niin:
-        // persons = persons.filter(person => person.id !== id)
-
-        res.status(204).end()
-        console.log('Person deleted')
-    } else {
-        return res.status(404).end()
-    }
 })
 
-// lisää ihminen
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const body = req.body
     console.log('Body:', body)
 
     // jos ei ole nimeä tai numeroa
     if (!body.name || !body.number) {
-        // virhekoodin palautus
-        return res.status(404).json({'error': 'name or number missing'})
+        return res.status(400).json({'error': 'name or number missing'})
     } 
 
-    // funktio joka tarkistaa löytyykö nimi jo yhteystiedoista 
-    const nameExists = (name) => {
-        return persons.find(person => person.name === name)
-    }
-
-    // jos nimi löytyy niin virhekoodia
-    if (nameExists(body.name)) {
-        return res.status(404).json({'error': 'name must be unique'})
-    }
-
-    // jos meni läpi yllä olevista "testeistä" niin luodaan uusi yhteystieto
-    const person = {
-        id: generateId(),
+    const person = new Person({
         name: body.name,
-        number: body.number
+        number: body.number,
+    })
+    
+    // katsotaan onko olemassa jo samanniminen
+    Person.find({ name: body.name })
+        .then(persons => {
+            console.log("Result:", persons)
+            if (persons.length === 0) {
+                // jos ei ole samannimistä, tallennetaan db:hen
+                person
+                    .save().
+                        then(savedPerson => {
+                            res.json(savedPerson);
+                        })
+                        .catch(error => next(error));
+
+            } else {
+                return res.status(404).json({'error': 'name must be unique'})
+            }
+        })
+        .catch(error => next(error));
+});
+
+
+
+// error handler... duh
+const errorHandler = (error, req, res, next) => {
+    console.error(error.message);
+
+    if (error.name === "CastError") {
+        return response.status(400).send({ "error": "wrong id format" });
     }
 
-    // lisätään yt. 
-    persons = persons.concat(person)
-    console.log('New persons:', persons)
+    next(error);
+}
 
-    res.status(200).json(person)
-})
+app.use(errorHandler);
+
     
 PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
-})
+});

@@ -23,6 +23,7 @@
   "dependencies": {
     "@heroku-cli/plugin-buildpacks": "^7.54.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
     "express": "^4.17.1",
     "heroku": "^7.59.0",
     "mongoose": "^6.0.14",
