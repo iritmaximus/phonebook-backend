@@ -1,13 +1,10 @@
 require("dotenv").config();
-// en itse kirjoittanut mutta jostain ilmestyi
-// ja tässä kohtaa pelottaa liikaa poistaa se
-const { json, response } = require('express');
 
 const express = require('express');
 const app = express();
+const Person = require("./models/person.js");
 const morgan = require('morgan');
 const cors = require('cors');
-const Person = require("./models/person.js");
 
 // pari tuntia debugattiin ja lopulta olikin express.json'()' 
 // mikä puuttui...........
@@ -60,7 +57,7 @@ app.get('/info', (req, res) => {
 
 // yksittäinen ihminen
 app.get('/api/persons/:id', (req, res, next) => {
-    Person.find({ id: req.params.id })
+    Person.findById(req.params.id)
         .then(person => {
             if (person) {
                 res.json(person);
@@ -87,6 +84,17 @@ app.delete('/api/persons/:id', (req, res, next) => {
 
 })
 
+app.put("/api/persons/:id", (req, res, next) => {
+
+    Person.findByIdAndUpdate(req.params.id, { number: req.body.number })
+        .then(person => {
+            res.json(person);
+        })
+        .catch(error => next(error));
+})
+
+
+
 app.post('/api/persons', (req, res, next) => {
     const body = req.body
     console.log('Body:', body)
@@ -108,8 +116,8 @@ app.post('/api/persons', (req, res, next) => {
             if (persons.length === 0) {
                 // jos ei ole samannimistä, tallennetaan db:hen
                 person
-                    .save().
-                        then(savedPerson => {
+                    .save()
+                        .then(savedPerson => {
                             res.json(savedPerson);
                         })
                         .catch(error => next(error));
@@ -128,7 +136,7 @@ const errorHandler = (error, req, res, next) => {
     console.error(error.message);
 
     if (error.name === "CastError") {
-        return response.status(400).send({ "error": "wrong id format" });
+        return res.status(400).send({ "error": "wrong id format" });
     }
 
     next(error);

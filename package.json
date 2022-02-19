@@ -10,7 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js",
     "start": "node index.js",
-    "build:ui": "rm -rf build && cd ../phonebook-frontend && npm run build --prod && cp -r build ../phonebook-backend",
+    "build:ui": "rm -rf build && cd ../phonebook-frontend && npm run build && cp -r build ../phonebook-backend",
+    "build:dev": "npm run build:ui && npm run dev",
     "deploy": "git add . && git commit -m 'deploy' && git push heroku main",
     "deploy:full": "npm run build:ui && git add . && git commit -m 'uibuild' && git push heroku main",
     "logs:prod": "heroku logs --tail"
