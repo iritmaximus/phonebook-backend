@@ -1,0 +1,1 @@
+GET https://mighty-coast-35950.herokuapp.com/info

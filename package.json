@@ -1,0 +1,33 @@
+{
+  "name": "phonebook-backend",
+  "version": "1.0.0",
+  "engines": {
+    "node": "16.x"
+  },
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "build:ui": "rm -rf build && cd ../phonebook-frontend && npm run build && cp -r build ../phonebook-backend",
+    "build:dev": "npm run build:ui && npm run dev",
+    "deploy": "git add . && git commit -m 'deploy' && git push heroku main",
+    "deploy:full": "npm run build:ui && git add . && git commit -m 'uibuild' && git push heroku main",
+    "logs:prod": "heroku logs --tail"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.13"
+  },
+  "dependencies": {
+    "@heroku-cli/plugin-buildpacks": "^7.54.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.1",
+    "heroku": "^7.59.0",
+    "mongoose": "^6.0.14",
+    "morgan": "^1.10.0"
+  }
+}

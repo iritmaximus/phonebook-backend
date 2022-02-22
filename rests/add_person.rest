@@ -1,0 +1,7 @@
+POST https://mighty-coast-35950.herokuapp.com/api/persons
+Content-Type: application/json
+
+{
+    "name": "Pööpi",
+    "number": "1235"
+}
