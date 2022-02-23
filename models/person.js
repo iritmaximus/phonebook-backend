@@ -10,6 +10,7 @@ mongoose.connect(url)
         console.log("failed to connect:", error.message);
     })
 
+
 const personSchema = mongoose.Schema({
     name: {
         type: String,
@@ -18,7 +19,13 @@ const personSchema = mongoose.Schema({
     },
     number: {
         type: Number,
-        required: true
+        required: true,
+        validate: { 
+          validator: function(testNumber) {
+            return /\d{2,3}-\d{7,}/.test(testNumber) 
+          },
+          message: props => `${props.value} is not correctly formatted.`
+        },
     },
 });
 

@@ -99,6 +99,9 @@ app.post('/api/persons', (req, res, next) => {
     const body = req.body
     console.log('Body:', body)
 
+  // TODO custom validator checking
+
+
     // jos ei ole nimeä tai numeroa
     if (!body.name || !body.number) {
         return res.status(400).json({'error': 'name or number missing'})
@@ -108,7 +111,7 @@ app.post('/api/persons', (req, res, next) => {
         name: body.name,
         number: body.number,
     })
-    
+
     // katsotaan onko olemassa jo samanniminen
     Person.find({ name: body.name })
         .then(persons => {
@@ -136,7 +139,9 @@ const errorHandler = (error, req, res, next) => {
     console.error(error.message);
 
     if (error.name === "CastError") {
-        return res.status(400).send({ "error": "wrong id format" });
+       return res.status(400).send({ "error": "wrong id format" });
+    } else if (error.name === "ValidationError" && error.path === "number"){
+        return res.status(400).send({ "error": "Number is not correctly formatted" })    
     } else if (error.name === "ValidationError") {
         return res.status(400).send({ "error": error.message })
     }
