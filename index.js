@@ -44,10 +44,7 @@ app.get('/info', (req, res) => {
     // vähän ruma ratkaisu mutta se toimii, mur muuttuvat arvot backendissä
     var i = 0;
     Person.find({}).then(persons => {
-        persons.forEach(person => {
-            i++;
-        })
-        
+        persons.forEach(i++);
         res.send(
             `<p>Phonebook has info of ${i}</p>${Date()}`
         )   
@@ -98,8 +95,6 @@ app.put("/api/persons/:id", (req, res, next) => {
 app.post('/api/persons', (req, res, next) => {
     const body = req.body
     console.log('Body:', body)
-
-  // TODO custom validator checking
 
 
     // jos ei ole nimeä tai numeroa
