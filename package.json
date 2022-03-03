@@ -14,11 +14,13 @@
     "build:dev": "npm run build:ui && npm run dev",
     "deploy": "git add . && git commit -m 'deploy' && git push heroku main",
     "deploy:full": "npm run build:ui && git add . && git commit -m 'uibuild' && git push heroku main",
-    "logs:prod": "heroku logs --tail"
+    "logs:prod": "heroku logs --tail",
+    "lint": "eslint ."
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "eslint": "^8.10.0",
     "nodemon": "^2.0.13"
   },
   "dependencies": {
